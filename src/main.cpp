@@ -18,11 +18,20 @@
 #include <Adafruit_MPU6050.h> // SSENSOR MPU6050
 #include <Adafruit_Sensor.h>  // LIBRERIA USADA PARA EL SENSOR ADAFRUIT CON TODOS LOS METODOS
 #include <Wire.h>             // LIBRERIA PARA I2C
-#include "wifisetup.h"        // INICIALIZACIÓN DE LA CONEXIÓN WIFI
+#include "libs/wifisetup.h"        // INICIALIZACIÓN DE LA CONEXIÓN WIFI
 #include <Servo.h>            // LIBRERIA PARA EL SERVO (OPCIONAL)
 #include <ArduinoJson.h>      // JSON
+#include <SD.h> 
+#include <SPI.h> 
 
-/* Inicialización de Librerias */
+/* DECLARACION DE VARIABLES */
+const char *config_file = "/config/diccionario.txt";
+
+struct Ori {
+  String orientiacion;
+};
+
+/* INICIALIZACION DE VARIABLES */
 TaskHandle_t tarea1;
 TaskHandle_t tarea2; // VARIABLES PARA EL USO DE NUCLEOS
 TaskHandle_t tarea3;
@@ -37,10 +46,23 @@ Adafruit_MPU6050 sensor3; // MPU6050 (DED03)
 TwoWire I2Cuno = TwoWire(0); // Primer bus I2C
 TwoWire I2Cdos = TwoWire(1); // Segundo bus I2C
 
+/* VARIABLES PARA LA ESTRUCTUA */ 
+Ori orientacion;
+
+
+
 // void OTA_nucleo(void *parameter)
 // {
 //   ArduinoOTA.handle(); // METODO QUE ACTUALIZA EL SENSOR (CACHA LA INFORMACIÓN)
 // }
+
+/* INICIALIZACION DE FUNCIONES */
+/* CARGAR ORIENTACIONES */
+void cargarOrientacion(const char *config_file, Ori &orientacion){
+  File archivo = SD.open(config_file);
+  
+}
+
 
 
 /* INICIALIZACIÓN DE SENSORES */
