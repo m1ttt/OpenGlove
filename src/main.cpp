@@ -59,6 +59,9 @@ TwoWire I2Cdos = TwoWire(1); // Segundo bus I2C
 // }
 
 boolean vsensor1, vsensor2, vsensor3, vsensor4;
+const int numSamples = 120;
+int samplesRead = numSamples;
+const float accelerationThreshold = 17;
 
 /* INICIALIZACIÓN DE SENSORES */
 void incializarSensores()
@@ -91,14 +94,21 @@ void obtenerSensor1()
   sensors_event_t a, g, temp;
   sensor.getEvent(&a, &g, &temp);
   float coord_y = a.acceleration.y;
-  Serial.print("[1] Inicio"); 
-  Serial.print(" "); Serial.print(a.acceleration.x);
-  Serial.print(" "); Serial.print(a.acceleration.y);
-  Serial.print(" "); Serial.print(a.acceleration.z);
-  Serial.print(" "); Serial.print(g.gyro.x);
-  Serial.print(" ");  Serial.print(g.gyro.y);
-  Serial.print(" "); Serial.print(g.gyro.z);
-  Serial.println(" Fin");
+  Serial.print(a.acceleration.x, 3);
+  Serial.print(" ");
+  Serial.print(a.acceleration.y, 3);
+  Serial.print(" ");
+  Serial.print(a.acceleration.z, 3);
+  Serial.print(" ");
+  Serial.print(g.gyro.x, 3);
+  Serial.print(" ");
+  Serial.print(g.gyro.y, 3);
+  Serial.print(" ");
+  Serial.print(g.gyro.z, 3);
+  Serial.print(" ");
+  Serial.print("1");
+  Serial.println();
+ 
 
 }
 
@@ -109,14 +119,21 @@ void obtenerSensor2()
   sensors_event_t a, g, temp;
   sensor2.getEvent(&a, &g, &temp);
   float coord_y = a.acceleration.y;
-  Serial.print("[2] Inicio"); 
-  Serial.print(" "); Serial.print(a.acceleration.x);
-  Serial.print(" "); Serial.print(a.acceleration.y);
-  Serial.print(" "); Serial.print(a.acceleration.z);
-  Serial.print(" "); Serial.print(g.gyro.x);
-  Serial.print(" ");  Serial.print(g.gyro.y);
-  Serial.print(" "); Serial.print(g.gyro.z);
-  Serial.println(" Fin");
+  Serial.print(a.acceleration.x, 3);
+  Serial.print(" ");
+  Serial.print(a.acceleration.y, 3);
+  Serial.print(" ");
+  Serial.print(a.acceleration.z, 3);
+  Serial.print(" ");
+  Serial.print(g.gyro.x, 3);
+  Serial.print(" ");
+  Serial.print(g.gyro.y, 3);
+  Serial.print(" ");
+  Serial.print(g.gyro.z, 3);
+  Serial.print(" ");
+  Serial.print("2");
+  Serial.println();
+ 
 }
 
 
@@ -127,14 +144,21 @@ void obtenerSensor3()
   sensors_event_t a, g, temp;
   sensor3.getEvent(&a, &g, &temp);
   float coord_y = a.acceleration.y;
-   Serial.print("[3] Inicio"); 
-  Serial.print(" "); Serial.print(a.acceleration.x);
-  Serial.print(" "); Serial.print(a.acceleration.y);
-  Serial.print(" "); Serial.print(a.acceleration.z);
-  Serial.print(" "); Serial.print(g.gyro.x);
-  Serial.print(" ");  Serial.print(g.gyro.y);
-  Serial.print(" "); Serial.print(g.gyro.z);
-  Serial.println(" Fin");
+  Serial.print(a.acceleration.x, 3);
+  Serial.print(" ");
+  Serial.print(a.acceleration.y, 3);
+  Serial.print(" ");
+  Serial.print(a.acceleration.z, 3);
+  Serial.print(" ");
+  Serial.print(g.gyro.x, 3);
+  Serial.print(" ");
+  Serial.print(g.gyro.y, 3);
+  Serial.print(" ");
+  Serial.print(g.gyro.z, 3);
+  Serial.print(" ");
+  Serial.print("3");
+  Serial.println();
+ 
 }
 
 void obtenerSensor4()
@@ -143,14 +167,21 @@ void obtenerSensor4()
   sensors_event_t a, g, temp;
   sensor4.getEvent(&a, &g, &temp);
   float coord_y = a.acceleration.y;
-  Serial.print("[4] Inicio"); 
-  Serial.print(" "); Serial.print(a.acceleration.x);
-  Serial.print(" "); Serial.print(a.acceleration.y);
-  Serial.print(" "); Serial.print(a.acceleration.z);
-  Serial.print(" "); Serial.print(g.gyro.x);
-  Serial.print(" ");  Serial.print(g.gyro.y);
-  Serial.print(" "); Serial.print(g.gyro.z);
-  Serial.println(" Fin");
+  Serial.print(a.acceleration.x, 3);
+  Serial.print(" ");
+  Serial.print(a.acceleration.y, 3);
+  Serial.print(" ");
+  Serial.print(a.acceleration.z, 3);
+  Serial.print(" ");
+  Serial.print(g.gyro.x, 3);
+  Serial.print(" ");
+  Serial.print(g.gyro.y, 3);
+  Serial.print(" ");
+  Serial.print(g.gyro.z, 3);
+  Serial.print(" ");
+  Serial.print("4");
+  Serial.println();
+ 
 }
 
 
@@ -161,7 +192,7 @@ void setup()
   I2Cuno.begin(SDA_1, SCL_1, 40000UL); // INCIIALIZACIÓN DE BUS 1
   I2Cdos.begin(SDA_2, SCL_2, 40000UL); // INICIALIZACIÓN DE BUS 2
   Serial.begin(115200); // APERTURA DE MONITOR SERIAL.
-  Serial.println("Prueba de MPU6050 (4)");
+  while(!Serial);
   vsensor1 = sensor.begin(0x68, &I2Cuno);
   vsensor2 = sensor2.begin(0x69, &I2Cuno);
   vsensor3 = sensor3.begin(0x69, &I2Cdos);
@@ -173,28 +204,47 @@ void setup()
     Serial.println(vsensor2);
     Serial.println(vsensor3);
     Serial.println(vsensor4);
-    for (;;) // BUCLE DE LED
+    while (1)
     {
+      delay(10);
       digitalWrite(LED_PLACA, HIGH);
       delay(500);
       digitalWrite(LED_PLACA, LOW);
       delay(500);
     }
-    while (1)
-    {
-      delay(10);
-    }
   }
   digitalWrite(LED_PLACA, HIGH);
-  Serial.println("Sensores conectados");
   incializarSensores(); // FUNCIÓN QUE INICIALIZA LOS PARAMETROS DE SENSORES, COMO LOS GRADOS DE MOVIMIENTO ETC.
-  delay(2000);
+  Serial.println("aX aY aZ gX gY gZ sN");
 }
 
 
 /* FUNCIÓN EN CONSTANTE REPETICIÓN */
 void loop()
 {
-  obtenerSensor4(); // OBTIENE VALORES DEL SENSOR 1 (DED01)
-  delay(500);
+  float aX, aY, aZ, gX, gY, gZ;
+  while(samplesRead == numSamples){
+    sensors_event_t a, g, t;
+    sensor4.getEvent(&a, &g, &t);
+    aX = a.acceleration.x;
+    aY= a.acceleration.y;
+    aZ = a.acceleration.z;
+
+    float aSum = fabs(aX) + fabs(aY) + fabs(aZ);
+    if(aSum >= accelerationThreshold){
+      samplesRead = 0;
+      break;
+    }
+  }
+  while (samplesRead < numSamples){
+    samplesRead++;
+    obtenerSensor1();
+    obtenerSensor2();
+    obtenerSensor3();
+    obtenerSensor4();
+    if(samplesRead == numSamples){
+      Serial.println();
+    }
+  }
+  
 }
