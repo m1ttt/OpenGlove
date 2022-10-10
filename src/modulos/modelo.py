@@ -17,7 +17,7 @@ GESTURES = [
     "giros",
 ]
 
-SAMPLES_PER_GESTURE = 480
+SAMPLES_PER_GESTURE = 300
 
 NUM_GESTURES = len(GESTURES)
 
@@ -54,7 +54,7 @@ for gesture_index in range(NUM_GESTURES):
           (df['aZ'][index] + 15) / 30,
           (df['gX'][index] + 10) / 20,
           (df['gY'][index] + 10) / 20,
-          (df['gZ'][index] + 10) / 10
+          (df['gZ'][index] + 10) / 20
       ]
 
     inputs.append(tensor)
