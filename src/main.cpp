@@ -25,12 +25,16 @@
 #include <tensorflow/lite/micro/all_ops_resolver.h>
 #include <tensorflow/lite/micro/micro_error_reporter.h>
 #include <tensorflow/lite/micro/micro_interpreter.h>
-#include <tensorflow/lite/schema/schema_generated.h>a
+#include <tensorflow/lite/schema/schema_generated.h>
 #include "data/model.h"
+#include <HardwareSerial.h>
 
 /* SENSOR MPU6050 */
 
+HardwareSerial serialPort(2);
+
 Adafruit_MPU6050 sensores[6];
+
 float ax;
 float ay;
 float az;
@@ -82,6 +86,16 @@ void incializarSensores()
     sensores[i].setGyroRange(MPU6050_RANGE_250_DEG);       // RANGO DEL GIROSCOPIO
     sensores[i].setFilterBandwidth(MPU6050_BAND_21_HZ);
   }
+}
+
+float sexo(){
+    String sX = serialPort.readStringUntil('\n');
+    String sY = serialPort.readStringUntil('\n');
+    String sZ = serialPort.readStringUntil('\n');
+    float aX = sX.toFloat();
+    float aY = sY.toFloat();
+    float aZ = sZ.toFloat();
+   return aX, aY, aZ;
 }
 
 /* FUNCION QUE OBTIENE LOS VALORES DEL SENSOR (DED01) */
@@ -184,6 +198,7 @@ void setup()
   pinMode(BOTON_CAPTURADOR, INPUT);
   pinMode(18, INPUT);
   pinMode(LED_PLACA, OUTPUT);          // LED PLACA
+  serialPort.begin(115200, SERIAL_8N1,16,17 );
   I2Cuno.begin(SDA_1, SCL_1, 40000UL); // INCIIALIZACIÓN DE BUS 1
   I2Cdos.begin(SDA_2, SCL_2, 40000UL); // INICIALIZACIÓN DE BUS 2
   Serial.begin(115200);                // APERTURA DE MONITOR SERIAL.
