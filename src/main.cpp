@@ -14,6 +14,8 @@
 
 /* LED DE PLACA */
 #define LED_PLACA 2
+#define READINGS_PER_SAMPLE 40
+#define THRESHOLD 20
 
 /* Lbrerias usadas */
 #include <Arduino.h>
@@ -23,45 +25,28 @@
 #include <tensorflow/lite/micro/all_ops_resolver.h>
 #include <tensorflow/lite/micro/micro_error_reporter.h>
 #include <tensorflow/lite/micro/micro_interpreter.h>
-#include <tensorflow/lite/schema/schema_generated.h>
+#include <tensorflow/lite/schema/schema_generated.h>a
 #include "data/model.h"
-
-// /* DECLARACION DE VARIABLES */
-// const char *config_file = "/config/diccionario.txt";
-
-// struct Ori {
-//   String orientiacion;
-// };
 
 /* SENSOR MPU6050 */
 
 Adafruit_MPU6050 sensores[6];
+float ax;
+float ay;
+float az;
+float baseAx;
+float baseAy;
+float baseAz;
 
 /* BUSES I2C */
 TwoWire I2Cuno = TwoWire(0); // Primer bus I2C
 TwoWire I2Cdos = TwoWire(1); // Segundo bus I2C
 
-// /* VARIABLES PARA LA ESTRUCTUA */
-// Ori orientacion;
-
-// void OTA_nucleo(void *parameter)
-// {
-//   ArduinoOTA.handle(); // METODO QUE ACTUALIZA EL SENSOR (CACHA LA INFORMACIÓN)
-// }
-
-/* INICIALIZACION DE FUNCIONES */
-// /* CARGAR ORIENTACIONES */
-// void cargarOrientacion(const char *config_file, Ori &orientacion){
-//   File archivo = SD.open(config_file);
-//   StaticJsonDocument<200> json;
-//   StaticJsonBuffer<200> json(1024);
-// }
-
 boolean vsensor1, vsensor2, vsensor3, vsensor4;
-const int numSamples = 75;
-int samplesRead = numSamples;
 
 const float accelerationThreshold = 18;
+int numSamples = 40;
+int samplesRead = numSamples;
 
 // global variables used for TensorFlow Lite (Micro)
 tflite::MicroErrorReporter tflErrorReporter;
@@ -83,33 +68,20 @@ byte tensorArena[tensorArenaSize] __attribute__((aligned(16)));
 
 // array to map gesture index to a name
 const char *GESTURES[] = {
-    "cerrado",
-    "giros"};
+    "nueve",
+    "ocho"};
 
 #define NUM_GESTURES (sizeof(GESTURES) / sizeof(GESTURES[0]))
 
 /* INICIALIZACIÓN DE SENSORES */
 void incializarSensores()
 {
-  /* INICIALIZACIÓN DE SENSOR DED01 */
-  sensores[1].setAccelerometerRange(MPU6050_RANGE_2_G); // RANGO DE ACELEROMETRO
-  sensores[1].setGyroRange(MPU6050_RANGE_500_DEG);      // RANGO DEL GIROSCOPIO
-  sensores[1].setFilterBandwidth(MPU6050_BAND_5_HZ);
-
-  /* INICIALIZACIÓN DE SENSOR DED02 */
-  sensores[2].setAccelerometerRange(MPU6050_RANGE_2_G);
-  sensores[2].setGyroRange(MPU6050_RANGE_500_DEG);
-  sensores[2].setFilterBandwidth(MPU6050_BAND_5_HZ);
-
-  /* INICIALIZACIÓN DE SENSOR DED02 */
-  sensores[3].setAccelerometerRange(MPU6050_RANGE_2_G);
-  sensores[3].setGyroRange(MPU6050_RANGE_500_DEG);
-  sensores[3].setFilterBandwidth(MPU6050_BAND_5_HZ);
-  /* INICIALIZACIÓN DE SENSOR DED02 */
-
-  sensores[4].setAccelerometerRange(MPU6050_RANGE_2_G);
-  sensores[4].setGyroRange(MPU6050_RANGE_500_DEG);
-  sensores[4].setFilterBandwidth(MPU6050_BAND_5_HZ);
+  for (int i = 1; i <= 4; i++)
+  {
+    sensores[i].setAccelerometerRange(MPU6050_RANGE_16_G); // RANGO DE ACELEROMETRO
+    sensores[i].setGyroRange(MPU6050_RANGE_250_DEG);       // RANGO DEL GIROSCOPIO
+    sensores[i].setFilterBandwidth(MPU6050_BAND_21_HZ);
+  }
 }
 
 /* FUNCION QUE OBTIENE LOS VALORES DEL SENSOR (DED01) */
@@ -135,6 +107,77 @@ void obtenerSensores(int n)
   Serial.println();
 }
 
+void err_Conexion()
+{
+  Serial.println("No se pudo conectar con alguno de los sensores");
+  Serial.println(vsensor1);
+  Serial.println(vsensor2);
+  Serial.println(vsensor3);
+  Serial.println(vsensor4);
+  while (1)
+  {
+    delay(10);
+    digitalWrite(LED_PLACA, HIGH);
+    delay(500);
+    digitalWrite(LED_PLACA, LOW);
+    delay(500);
+  }
+}
+
+void run_inference()
+{
+  sensors_event_t a, g, temp;
+  for (int i = 0; i < READINGS_PER_SAMPLE; i++)
+  {
+    sensores[1].getEvent(&a, &g, &temp);
+    ax = a.acceleration.x - baseAx;
+    ay = a.acceleration.y - baseAy;
+    az = a.acceleration.z - baseAz;
+    tflInputTensor->data.f[i * 3 + 0] = (ax + 8.0) / 16.0;
+    tflInputTensor->data.f[i * 3 + 1] = (ay + 8.0) / 16.0;
+    tflInputTensor->data.f[i * 3 + 2] = (az + 8.0) / 16.0;
+    delay(10);
+  }
+
+  TfLiteStatus invokeStatus = tflInterpreter->Invoke();
+
+  for (int i = 0; i < NUM_GESTURES; i++)
+  {
+    Serial.print(GESTURES[i]);
+    Serial.print(": ");
+    Serial.println(tflOutputTensor->data.f[i], 6);
+  }
+  Serial.println();
+}
+void detectMovement()
+{
+  sensors_event_t a, g, temp;
+  sensores[1].getEvent(&a, &g, &temp);
+  if (abs(a.acceleration.x - baseAx) + abs(a.acceleration.y - baseAy) + abs(a.acceleration.z - baseAz) > THRESHOLD)
+  {
+    run_inference();
+  }
+  else
+  {
+    delay(5);
+  }
+}
+void calibrate_sensor()
+{
+  float totX, totY, totZ;
+  sensors_event_t a, g, temp;
+
+  for (int i = 0; i < 10; i++)
+  {
+    sensores[1].getEvent(&a, &g, &temp);
+    totX = totX + a.acceleration.x;
+    totY = totY + a.acceleration.y;
+    totZ = totZ + a.acceleration.z;
+  }
+  baseAx = totX / 10;
+  baseAy = totY / 10;
+  baseAz = totZ / 10;
+}
 /* FUNCIÓN DE INICIO DE LA PLACA */
 void setup()
 {
@@ -152,19 +195,7 @@ void setup()
   vsensor4 = sensores[4].begin(0x68, &I2Cdos);
   if (!vsensor1 || !vsensor2 || !vsensor3 || !vsensor4) // INICIO DE SENSORES.
   {
-    Serial.println("No se pudo conectar con alguno de los sensores");
-    Serial.println(vsensor1);
-    Serial.println(vsensor2);
-    Serial.println(vsensor3);
-    Serial.println(vsensor4);
-    while (1)
-    {
-      delay(10);
-      digitalWrite(LED_PLACA, HIGH);
-      delay(500);
-      digitalWrite(LED_PLACA, LOW);
-      delay(500);
-    }
+    err_Conexion();
   }
   digitalWrite(LED_PLACA, HIGH);
   incializarSensores(); // FUNCIÓN QUE INICIALIZA LOS PARAMETROS DE SENSORES, COMO LOS GRADOS DE MOVIMIENTO ETC.
@@ -192,72 +223,5 @@ void setup()
 /* FUNCIÓN EN CONSTANTE REPETICIÓN */
 void loop()
 {
-  float aX, aY, aZ, gX, gY, gZ;
-  int sexoAnal_Record = digitalRead(BOTON_CAPTURADOR);
-  int sexoAnal_Record2 = digitalRead(18);
-  if (sexoAnal_Record == HIGH)
-  {
-    samplesRead = 0;
-    while (samplesRead < numSamples)
-    {
-      for (int i = 1; i <= 4; i++)
-      {
-        sensors_event_t a, g, temp;
-        sensores[1].getEvent(&a, &g, &temp);
-        aX = a.acceleration.x;
-        aY = a.acceleration.y;
-        aX = a.acceleration.z;
-        gX = g.gyro.x;
-        gY = g.gyro.y;
-        gZ = g.gyro.z;
-      }
-      //   // // normalize the IMU data between 0 to 1 and store in the model's // input tensor
-      tflInputTensor->data.f[samplesRead * 6 + 0] = (aX);
-      tflInputTensor->data.f[samplesRead * 6 + 1] = (aY);
-      tflInputTensor->data.f[samplesRead * 6 + 2] = (aZ);
-      tflInputTensor->data.f[samplesRead * 6 + 3] = (gX);
-      tflInputTensor->data.f[samplesRead * 6 + 4] = (gY);
-      tflInputTensor->data.f[samplesRead * 6 + 5] = (gZ);
-      samplesRead++;
-      if (samplesRead == numSamples)
-      {
-        TfLiteStatus invokeStatus = tflInterpreter->Invoke();
-        if (invokeStatus != kTfLiteOk)
-        {
-          Serial.println("Invoke failed!");
-          while (1)
-            ;
-          return;
-        }
-        for (int i = 0; i < NUM_GESTURES; i++)
-        {
-          Serial.print(GESTURES[i]);
-          Serial.print(": ");
-          Serial.println(tflOutputTensor->data.f[i], 6);
-
-          Serial.println();
-        }
-      }
-    }
-  }
-  else if (sexoAnal_Record2 == HIGH)
-  {
-    samplesRead = 0;
-    while (samplesRead < numSamples)
-    {
-      for (int i = 1; i <= 4; i++)
-      {
-        obtenerSensores(i);
-      }
-      samplesRead++;
-      if (samplesRead == numSamples)
-      {
-        Serial.println("");
-        break;
-      }
-    }
-  }
-  else
-  {
-  }
+  detectMovement();
 }
