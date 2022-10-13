@@ -110,7 +110,7 @@ void obtenerSensores(int n)
   Serial.print(" ");
   Serial.print(n);
   Serial.println();
-  if(n==5){
+  if(n==5 && !flag_MEN_PULG_ANU){
     flag_MEN_PULG_ANU = true;
     digitalWrite(SENSOR_ANULAR, HIGH);
     obtenerSensores(4);
