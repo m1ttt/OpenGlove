@@ -1,3 +1,0 @@
-{
-    "orientacion": "arriba"
-}
