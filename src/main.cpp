@@ -11,6 +11,8 @@
 #define SCL_2 32 // NEGRO
 
 #define BOTON_CAPTURADOR 34
+#define SENSOR_MENIQUE 27
+#define SENSOR_ANULAR 14
 
 /* LED DE PLACA */
 #define LED_PLACA 2
@@ -37,6 +39,7 @@ float az;
 float baseAx;
 float baseAy;
 float baseAz;
+boolean flag_MEN_PULG_ANU;
 
 /* BUSES I2C */
 TwoWire I2Cuno = TwoWire(0); // Primer bus I2C
@@ -91,6 +94,8 @@ void obtenerSensores(int n)
   sensors_event_t a, g, temp;
   sensores[n].getEvent(&a, &g, &temp);
   float coord_y = a.acceleration.y;
+  digitalWrite(SENSOR_ANULAR, LOW);
+  flag_MEN_PULG_ANU = false;
   Serial.print(a.acceleration.x, 3);
   Serial.print(" ");
   Serial.print(a.acceleration.y, 3);
@@ -105,6 +110,11 @@ void obtenerSensores(int n)
   Serial.print(" ");
   Serial.print(n);
   Serial.println();
+  if(n==5){
+    flag_MEN_PULG_ANU = true;
+    digitalWrite(SENSOR_ANULAR, HIGH);
+    obtenerSensores(4);
+  }
 }
 
 void err_Conexion()
@@ -184,6 +194,7 @@ void setup()
   pinMode(BOTON_CAPTURADOR, INPUT);
   pinMode(18, INPUT);
   pinMode(LED_PLACA, OUTPUT);          // LED PLACA
+  pinMode(SENSOR_ANULAR, OUTPUT);
   I2Cuno.begin(SDA_1, SCL_1, 40000UL); // INCIIALIZACIÓN DE BUS 1
   I2Cdos.begin(SDA_2, SCL_2, 40000UL); // INICIALIZACIÓN DE BUS 2
   Serial.begin(115200);                // APERTURA DE MONITOR SERIAL.
@@ -223,5 +234,6 @@ void setup()
 /* FUNCIÓN EN CONSTANTE REPETICIÓN */
 void loop()
 {
-  detectMovement();
+    obtenerSensores(4);
+    delay(500);
 }
