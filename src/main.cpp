@@ -11,7 +11,7 @@
 #define SCL_2 32 // NEGRO
 
 #define BOTON_CAPTURADOR 18
-#define SENSOR_MENIQUE 27
+// #define SENSOR_MENIQUE 27
 #define SENSOR_PULGAR 14
 
 #define LED_PLACA 2
@@ -98,8 +98,7 @@ byte tensorArena[tensorArenaSize] __attribute__((aligned(16)));
 // array to map gesture index to a name
 const char *GESTURES[] = {
     "Letra A",
-    "Letra B",
-    "Letra C"};
+    "Letra B"};
 
 #define NUM_GESTURES (sizeof(GESTURES) / sizeof(GESTURES[0]))
 
@@ -117,22 +116,22 @@ void incializarSensores()
 /* FUNCION QUE OBTIENE LOS VALORES DEL SENSOR (DED01) */
 void obtenerSensores(int n)
 {
-    /* OBTIENE LOS VALORES DEL SENSOR DED01*/
-    if (n < 4)
-    {
-        digitalWrite(SENSOR_MENIQUE, LOW);
-        digitalWrite(SENSOR_PULGAR, LOW);
-    }
-    else if (n == 4 && !flag_MEN_PULG_ANU)
-    {
-        digitalWrite(SENSOR_MENIQUE, LOW); // 0X68
-        digitalWrite(SENSOR_PULGAR, HIGH); // 0X69
-    }
-    else if (n == 4 && flag_MEN_PULG_ANU)
-    {
-        digitalWrite(SENSOR_MENIQUE, HIGH); // 0X69
-        digitalWrite(SENSOR_PULGAR, LOW);   // 0X68
-    }
+    // /* OBTIENE LOS VALORES DEL SENSOR DED01*/
+    // if (n < 4)
+    // {
+    //     digitalWrite(SENSOR_MENIQUE, LOW);
+    //     digitalWrite(SENSOR_PULGAR, LOW);
+    // }
+    // else if (n == 4 && !flag_MEN_PULG_ANU)
+    // {
+    //     digitalWrite(SENSOR_MENIQUE, LOW); // 0X68
+    //     digitalWrite(SENSOR_PULGAR, HIGH); // 0X69
+    // }
+    // else if (n == 4 && flag_MEN_PULG_ANU)
+    // {
+    //     digitalWrite(SENSOR_MENIQUE, HIGH); // 0X69
+    //     digitalWrite(SENSOR_PULGAR, LOW);   // 0X68
+    // }
     sensors_event_t a, g, temp;
     sensores[n].getEvent(&a, &g, &temp);
     float coord_y = a.acceleration.y;
@@ -141,54 +140,57 @@ void obtenerSensores(int n)
     Serial.print(a.acceleration.y, 3);
     Serial.print(" ");
     Serial.print(a.acceleration.z, 3);
-    if (flag_MEN_PULG_ANU == true)
-    {
-        Serial.print(" ");
-        Serial.print(5);
-        Serial.println();
-    }
-    else
-    {
-        Serial.print(" ");
-        Serial.print(n);
-        Serial.println();
-    }
-    if (n == 4 && !flag_MEN_PULG_ANU)
-    {
-        // digitalWrite(SENSOR_PULGAR, LOW);
-        // digitalWrite(SENSOR_MENIQUE, HIGH);
-        flag_MEN_PULG_ANU = true;
-        // delay(1000);
-        // Serial.println("=================================================================");
-        obtenerSensores(4);
-        // digitalWrite(SENSOR_MENIQUE, LOW);
-        // digitalWrite(SENSOR_PULGAR, HIGH);
-        flag_MEN_PULG_ANU = false;
-    }
-    else
-    {
-        // delay(1000);
-    }
+    Serial.print(" ");
+    Serial.print(n);
+    Serial.println();
+    // if (flag_MEN_PULG_ANU == true)
+    // {
+    //     Serial.print(" ");
+    //     Serial.print(5);
+    //     Serial.println();
+    // }
+    // else
+    // {
+    //     Serial.print(" ");
+    //     Serial.print(n);
+    //     Serial.println();
+    // }
+    // if (n == 4 && !flag_MEN_PULG_ANU)
+    // {
+    //     // digitalWrite(SENSOR_PULGAR, LOW);
+    //     // digitalWrite(SENSOR_MENIQUE, HIGH);
+    //     flag_MEN_PULG_ANU = true;
+    //     // delay(1000);
+    //     // Serial.println("=================================================================");
+    //     obtenerSensores(4);
+    //     // digitalWrite(SENSOR_MENIQUE, LOW);
+    //     // digitalWrite(SENSOR_PULGAR, HIGH);
+    //     flag_MEN_PULG_ANU = false;
+    // }
+    // else
+    // {
+    //     // delay(1000);
+    // }
 }
 
 void obtenerSensores2(int n)
 {
-    /* OBTIENE LOS VALORES DEL SENSOR DED01*/
-    if (n < 4)
-    {
-        digitalWrite(SENSOR_MENIQUE, LOW);
-        digitalWrite(SENSOR_PULGAR, LOW);
-    }
-    else if (n == 4 && !flag_MEN_PULG_ANU)
-    {
-        digitalWrite(SENSOR_MENIQUE, LOW); // 0X68
-        digitalWrite(SENSOR_PULGAR, HIGH); // 0X69
-    }
-    else if (n == 4 && flag_MEN_PULG_ANU)
-    {
-        digitalWrite(SENSOR_MENIQUE, HIGH); // 0X69
-        digitalWrite(SENSOR_PULGAR, LOW);   // 0X68
-    }
+    // /* OBTIENE LOS VALORES DEL SENSOR DED01*/
+    // if (n < 4)
+    // {
+    //     digitalWrite(SENSOR_MENIQUE, LOW);
+    //     digitalWrite(SENSOR_PULGAR, LOW);
+    // }
+    // else if (n == 4 && !flag_MEN_PULG_ANU)
+    // {
+    //     digitalWrite(SENSOR_MENIQUE, LOW); // 0X68
+    //     digitalWrite(SENSOR_PULGAR, HIGH); // 0X69
+    // }
+    // else if (n == 4 && flag_MEN_PULG_ANU)
+    // {
+    //     digitalWrite(SENSOR_MENIQUE, HIGH); // 0X69
+    //     digitalWrite(SENSOR_PULGAR, LOW);   // 0X68
+    // }
     sensors_event_t a, g, temp;
     sensores[n].getEvent(&a, &g, &temp);
     ax = a.acceleration.x - baseAx;
@@ -232,17 +234,15 @@ void err_Conexion()
 void run_inference()
 {
     sensors_event_t a, g, temp;
-    for (int i = 0; i < 40; i++)
+    for (int i = 0; i < 42; i++)
     {
-        for (int a = 1; a <= 4; a++)
+        for (int a = 1; a <= 3; a++)
         {
             obtenerSensores2(a);
             tflInputTensor->data.f[i * 3 + 0] = (ax + 8.0) / 16.0;
             tflInputTensor->data.f[i * 3 + 1] = (ay + 8.0) / 16.0;
             tflInputTensor->data.f[i * 3 + 2] = (az + 8.0) / 16.0;
         }
-
-        delay(10);
     }
 
     TfLiteStatus invokeStatus = tflInterpreter->Invoke();
@@ -257,14 +257,8 @@ void run_inference()
 }
 void detectMovement()
 {
-    if (digitalRead(BOTON_CAPTURADOR) == HIGH)
-    {
-        run_inference();
-    }
-    else
-    {
-        delay(5);
-    }
+
+    run_inference();
 }
 void calibrate_sensor()
 {
@@ -288,10 +282,8 @@ void iniciarlizarPines()
     pinMode(BOTON_CAPTURADOR, INPUT);
     pinMode(18, INPUT);
     pinMode(LED_PLACA, OUTPUT); // LED PLACA
-    pinMode(SENSOR_MENIQUE, OUTPUT);
     pinMode(SENSOR_PULGAR, OUTPUT);
-    digitalWrite(SENSOR_MENIQUE, LOW);
-    digitalWrite(SENSOR_PULGAR, LOW);
+    digitalWrite(SENSOR_PULGAR, HIGH);
     pinMode(25, OUTPUT);
     I2Cuno.begin(SDA_1, SCL_1, 40000UL); // INCIIALIZACIÓN DE BUS 1
     I2Cdos.begin(SDA_2, SCL_2, 40000UL); // INICIALIZACIÓN DE BUS 2
@@ -324,11 +316,10 @@ void inicializarPuertosI2C()
     // APERTURA DE MONITOR SERIAL.
     while (!Serial)
         ;
-    vsensor1 = sensores[1].begin(0x68, &I2Cuno);
-    vsensor2 = sensores[2].begin(0x69, &I2Cuno);
-    vsensor3 = sensores[3].begin(0x69, &I2Cdos);
-    vsensor4 = sensores[4].begin(0x68, &I2Cdos);
-    if (!vsensor1 || !vsensor2 || !vsensor3 || !vsensor4) // INICIO DE SENSORES.
+    vsensor2 = sensores[1].begin(0x68, &I2Cuno);
+    vsensor3 = sensores[2].begin(0x69, &I2Cdos);
+    vsensor4 = sensores[3].begin(0x68, &I2Cdos);
+    if (!vsensor2 || !vsensor3 || !vsensor4) // INICIO DE SENSORES.
     {
         err_Conexion();
     }
@@ -336,6 +327,7 @@ void inicializarPuertosI2C()
 /* FUNCIÓN DE INICIO DE LA PLACA */
 void setup()
 {
+
     iniciarlizarPines();
     voice.say(spA);
     voice.say(spB);
